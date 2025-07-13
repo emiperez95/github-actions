@@ -1,0 +1,140 @@
+name: 'Coverage Badge Gist'
+description: 'Updates a coverage badge using GitHub Gist and shields.io'
+author: 'emiperez95'
+
+inputs:
+  gist-id:
+    description: 'GitHub Gist ID where the badge data will be stored'
+    required: true
+  gist-token:
+    description: 'GitHub Personal Access Token with gist scope'
+    required: true
+  coverage-file:
+    description: 'Path to the coverage JSON file'
+    required: false
+    default: 'coverage.json'
+  gist-filename:
+    description: 'Filename to use in the Gist'
+    required: false
+    default: 'coverage.json'
+  badge-label:
+    description: 'Label text for the badge'
+    required: false
+    default: 'coverage'
+
+outputs:
+  coverage-percentage:
+    description: 'The extracted coverage percentage'
+  badge-color:
+    description: 'The determined badge color based on coverage'
+  badge-url:
+    description: 'The complete shields.io URL for the badge'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Extract coverage percentage
+      id: coverage
+      shell: bash
+      run: |
+        # Extract coverage percentage and determine color using Python
+        python << 'EOF'
+        import json
+        import os
+        import sys
+        
+        try:
+            # Read coverage data
+            with open('${{ inputs.coverage-file }}') as f:
+                data = json.load(f)
+            
+            coverage = float(data['totals']['percent_covered_display'])
+            
+            # Determine color based on coverage
+            if coverage >= 90:
+                color = "brightgreen"
+            elif coverage >= 80:
+                color = "green"
+            elif coverage >= 70:
+                color = "yellowgreen"
+            elif coverage >= 60:
+                color = "yellow"
+            elif coverage >= 50:
+                color = "orange"
+            else:
+                color = "red"
+            
+            # Write to GitHub outputs
+            with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                f.write(f"coverage={coverage}\n")
+                f.write(f"color={color}\n")
+                f.write(f"badge-url=https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/{os.environ['GITHUB_REPOSITORY_OWNER']}/${{ inputs.gist-id }}/raw/${{ inputs.gist-filename }}\n")
+            
+            print(f"Coverage: {coverage}%")
+            print(f"Color: {color}")
+            
+        except FileNotFoundError:
+            print(f"Error: Coverage file '${{ inputs.coverage-file }}' not found")
+            sys.exit(1)
+        except KeyError as e:
+            print(f"Error: Missing key in coverage data: {e}")
+            sys.exit(1)
+        except Exception as e:
+            print(f"Error processing coverage data: {e}")
+            sys.exit(1)
+        EOF
+
+    - name: Update Gist for badge
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ inputs.gist-token }}
+        script: |
+          const coverage = '${{ steps.coverage.outputs.coverage }}';
+          const color = '${{ steps.coverage.outputs.color }}';
+          const gistId = '${{ inputs.gist-id }}';
+          const filename = '${{ inputs.gist-filename }}';
+          const label = '${{ inputs.badge-label }}';
+          
+          console.log(`Coverage: ${coverage}%`);
+          console.log(`Color: ${color}`);
+          console.log(`Updating Gist: ${gistId}`);
+          
+          // Check if required inputs are provided
+          if (!gistId || gistId === '') {
+            core.setFailed('gist-id input is required');
+            return;
+          }
+          
+          const data = {
+            schemaVersion: 1,
+            label: label,
+            message: `${coverage}%`,
+            color: color
+          };
+          
+          // Update the gist
+          try {
+            await github.rest.gists.update({
+              gist_id: gistId,
+              files: {
+                [filename]: {
+                  content: JSON.stringify(data, null, 2)
+                }
+              }
+            });
+            console.log('Gist updated successfully');
+            
+            // Set outputs
+            core.setOutput('coverage-percentage', coverage);
+            core.setOutput('badge-color', color);
+            core.setOutput('badge-url', `https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/${context.repo.owner}/${gistId}/raw/${filename}`);
+            
+          } catch (error) {
+            console.log('Failed to update gist');
+            console.log('Error:', error.message);
+            core.setFailed(`Failed to update gist: ${error.message}`);
+          }
+
+branding:
+  icon: 'shield'
+  color: 'green'
