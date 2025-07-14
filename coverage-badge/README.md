@@ -2,6 +2,47 @@
 
 A GitHub Action that automatically updates a coverage badge using GitHub Gist and shields.io. This action extracts coverage data from a JSON file, determines the appropriate badge color based on coverage percentage, and updates a GitHub Gist that can be used with shields.io to display a dynamic coverage badge.
 
+## Testing
+
+This action includes comprehensive tests to ensure reliability:
+
+- **Unit Tests**: Python logic is tested with pytest
+- **Integration Tests**: GitHub Actions workflow tests various scenarios
+- **Local Testing**: Use `act` to test workflows locally
+
+### Running Tests Locally
+
+1. **Run unit tests**:
+   ```bash
+   cd coverage-badge
+   python -m pytest tests/ -v
+   ```
+
+2. **Test with act** (requires [act](https://github.com/nektos/act) installed):
+   ```bash
+   ./test-local.sh
+   ```
+
+3. **Manual testing**:
+   ```bash
+   # Test the Python script directly
+   python coverage_badge.py tests/fixtures/coverage_90.json
+   ```
+
+### Test Structure
+
+```
+coverage-badge/
+├── tests/
+│   ├── fixtures/           # Test coverage JSON files
+│   │   ├── coverage_90.json
+│   │   ├── coverage_50.json
+│   │   └── invalid_coverage.json
+│   └── test_coverage_badge.py  # Unit tests
+├── coverage_badge.py       # Extracted Python logic
+└── test-local.sh          # Local testing script
+```
+
 ## Features
 
 - ✅ Extracts coverage percentage from JSON coverage reports
@@ -45,6 +86,7 @@ A GitHub Action that automatically updates a coverage badge using GitHub Gist an
 | `coverage-file` | Path to the coverage JSON file | ❌ No | `coverage.json` |
 | `gist-filename` | Filename to use in the Gist | ❌ No | `coverage.json` |
 | `badge-label` | Label text for the badge | ❌ No | `coverage` |
+| `dry-run` | Skip gist update for testing (true/false) | ❌ No | `false` |
 
 ## Outputs
 
