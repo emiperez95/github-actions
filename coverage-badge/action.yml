@@ -1,30 +1,20 @@
-name: 'Coverage Badge Gist'
-description: 'Updates a coverage badge using GitHub Gist and shields.io'
+name: 'Coverage Badge'
+description: 'Updates a coverage badge using BYOB (Bring Your Own Badge)'
 author: 'emiperez95'
 
 inputs:
-  gist-id:
-    description: 'GitHub Gist ID where the badge data will be stored'
-    required: true
-  gist-token:
-    description: 'GitHub Personal Access Token with gist scope'
-    required: true
   coverage-file:
     description: 'Path to the coverage JSON file'
-    required: false
-    default: 'coverage.json'
-  gist-filename:
-    description: 'Filename to use in the Gist'
     required: false
     default: 'coverage.json'
   badge-label:
     description: 'Label text for the badge'
     required: false
-    default: 'coverage'
-  dry-run:
-    description: 'Skip gist update for testing (true/false)'
+    default: 'Coverage'
+  badge-name:
+    description: 'Name identifier for the badge (used internally by BYOB)'
     required: false
-    default: 'false'
+    default: 'coverage'
 
 outputs:
   coverage-percentage:
@@ -32,17 +22,16 @@ outputs:
   badge-color:
     description: 'The determined badge color based on coverage'
   badge-url:
-    description: 'The complete shields.io URL for the badge'
+    description: 'The BYOB URL for the badge'
 
 runs:
   using: 'composite'
   steps:
-    - name: Extract coverage percentage
+    - name: Extract coverage percentage and determine color
       id: coverage
       shell: bash
       run: |
-        # Extract coverage percentage and determine color using Python
-        python << 'EOF'
+        python -c "
         import json
         import os
         import sys
@@ -56,103 +45,46 @@ runs:
             
             # Determine color based on coverage
             if coverage >= 90:
-                color = "brightgreen"
+                color = 'brightgreen'
             elif coverage >= 80:
-                color = "green"
+                color = 'green'
             elif coverage >= 70:
-                color = "yellowgreen"
+                color = 'yellowgreen'
             elif coverage >= 60:
-                color = "yellow"
+                color = 'yellow'
             elif coverage >= 50:
-                color = "orange"
+                color = 'orange'
             else:
-                color = "red"
+                color = 'red'
             
             # Write to GitHub outputs
             with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
-                f.write(f"coverage={coverage}\n")
-                f.write(f"color={color}\n")
-                f.write(f"badge-url=https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/{os.environ['GITHUB_REPOSITORY_OWNER']}/${{ inputs.gist-id }}/raw/${{ inputs.gist-filename }}\n")
+                f.write(f'coverage={coverage}\n')
+                f.write(f'color={color}\n')
+                f.write(f'badge-url=https://byob.yarr.is/{os.environ[\"GITHUB_REPOSITORY\"]}/${{ inputs.badge-name }}\n')
             
-            print(f"Coverage: {coverage}%")
-            print(f"Color: {color}")
+            print(f'Coverage: {coverage}%')
+            print(f'Color: {color}')
             
         except FileNotFoundError:
-            print(f"Error: Coverage file '${{ inputs.coverage-file }}' not found")
+            print(f'Error: Coverage file \"${{ inputs.coverage-file }}\" not found')
             sys.exit(1)
         except KeyError as e:
-            print(f"Error: Missing key in coverage data: {e}")
+            print(f'Error: Missing key in coverage data: {e}')
             sys.exit(1)
         except Exception as e:
-            print(f"Error processing coverage data: {e}")
+            print(f'Error processing coverage data: {e}')
             sys.exit(1)
-        EOF
+        "
 
-    - name: Update Gist for badge
-      if: ${{ inputs.dry-run != 'true' }}
-      uses: actions/github-script@v7
+    - name: Update Coverage Badge with BYOB
+      uses: RubbaBoy/BYOB@v1.3.0
       with:
-        github-token: ${{ inputs.gist-token }}
-        script: |
-          const coverage = '${{ steps.coverage.outputs.coverage }}';
-          const color = '${{ steps.coverage.outputs.color }}';
-          const gistId = '${{ inputs.gist-id }}';
-          const filename = '${{ inputs.gist-filename }}';
-          const label = '${{ inputs.badge-label }}';
-          
-          console.log(`Coverage: ${coverage}%`);
-          console.log(`Color: ${color}`);
-          console.log(`Updating Gist: ${gistId}`);
-          
-          // Check if required inputs are provided
-          if (!gistId || gistId === '') {
-            core.setFailed('gist-id input is required');
-            return;
-          }
-          
-          const data = {
-            schemaVersion: 1,
-            label: label,
-            message: `${coverage}%`,
-            color: color
-          };
-          
-          // Update the gist
-          try {
-            await github.rest.gists.update({
-              gist_id: gistId,
-              files: {
-                [filename]: {
-                  content: JSON.stringify(data, null, 2)
-                }
-              }
-            });
-            console.log('Gist updated successfully');
-            
-            // Set outputs
-            core.setOutput('coverage-percentage', coverage);
-            core.setOutput('badge-color', color);
-            core.setOutput('badge-url', `https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/${context.repo.owner}/${gistId}/raw/${filename}`);
-            
-          } catch (error) {
-            console.log('Failed to update gist');
-            console.log('Error:', error.message);
-            core.setFailed(`Failed to update gist: ${error.message}`);
-          }
-    
-    - name: Set outputs for dry-run
-      if: ${{ inputs.dry-run == 'true' }}
-      shell: bash
-      run: |
-        echo "Dry-run mode: Skipping gist update"
-        echo "Would update gist: ${{ inputs.gist-id }}"
-        echo "Coverage: ${{ steps.coverage.outputs.coverage }}%"
-        echo "Color: ${{ steps.coverage.outputs.color }}"
-        
-        # Set outputs
-        echo "coverage-percentage=${{ steps.coverage.outputs.coverage }}" >> $GITHUB_OUTPUT
-        echo "badge-color=${{ steps.coverage.outputs.color }}" >> $GITHUB_OUTPUT
-        echo "badge-url=${{ steps.coverage.outputs.badge-url }}" >> $GITHUB_OUTPUT
+        NAME: ${{ inputs.badge-name }}
+        LABEL: ${{ inputs.badge-label }}
+        STATUS: '${{ steps.coverage.outputs.coverage }}%'
+        COLOR: ${{ steps.coverage.outputs.color }}
+        GITHUB_TOKEN: ${{ github.token }}
 
 branding:
   icon: 'shield'

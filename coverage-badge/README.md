@@ -3,7 +3,9 @@
 ![Coverage](https://byob.yarr.is/emiperez95/github-actions/coverage)
 ![Tests](https://github.com/emiperez95/github-actions/workflows/Test%20Coverage%20Badge%20Action/badge.svg)
 
-A GitHub Action that automatically updates a coverage badge using repository storage and BYOB. This action extracts coverage data from a JSON file, determines the appropriate badge color based on coverage percentage, and updates a repository-hosted badge that displays dynamic coverage information.
+A GitHub Action that automatically updates a coverage badge using BYOB (Bring Your Own Badge). This action extracts coverage data from a JSON file, determines the appropriate badge color based on coverage percentage, and updates a repository-hosted badge that displays dynamic coverage information.
+
+**✨ No secrets required!** This action uses the built-in `GITHUB_TOKEN` and stores badge data directly in your repository.
 
 ## Testing
 
@@ -61,35 +63,29 @@ coverage-badge/
 
 ```yaml
 - name: Update Coverage Badge
-  uses: ./.github/actions/coverage-badge
+  uses: emiperez95/github-actions/coverage-badge@v2
   with:
-    gist-id: 'your-gist-id-here'
-    gist-token: ${{ secrets.GIST_SECRET }}
+    coverage-file: 'coverage.json'
 ```
 
 ### Advanced Usage
 
 ```yaml
 - name: Update Coverage Badge
-  uses: ./.github/actions/coverage-badge
+  uses: emiperez95/github-actions/coverage-badge@v2
   with:
-    gist-id: 'your-gist-id-here'
-    gist-token: ${{ secrets.GIST_SECRET }}
     coverage-file: 'coverage.json'
-    gist-filename: 'my-project-coverage.json'
     badge-label: 'test coverage'
+    badge-name: 'my-coverage'
 ```
 
 ## Inputs
 
 | Input | Description | Required | Default |
 |-------|-------------|----------|---------|
-| `gist-id` | GitHub Gist ID where badge data will be stored | ✅ Yes | - |
-| `gist-token` | GitHub Personal Access Token with gist scope | ✅ Yes | - |
 | `coverage-file` | Path to the coverage JSON file | ❌ No | `coverage.json` |
-| `gist-filename` | Filename to use in the Gist | ❌ No | `coverage.json` |
-| `badge-label` | Label text for the badge | ❌ No | `coverage` |
-| `dry-run` | Skip gist update for testing (true/false) | ❌ No | `false` |
+| `badge-label` | Label text for the badge | ❌ No | `Coverage` |
+| `badge-name` | Name identifier for the badge (used internally by BYOB) | ❌ No | `coverage` |
 
 ## Outputs
 
@@ -97,7 +93,7 @@ coverage-badge/
 |--------|-------------|
 | `coverage-percentage` | The extracted coverage percentage |
 | `badge-color` | The determined badge color based on coverage |
-| `badge-url` | The complete shields.io URL for the badge |
+| `badge-url` | The BYOB URL for the badge |
 
 ## Coverage Color Thresholds
 
@@ -132,7 +128,16 @@ The JSON file should have the structure:
 }
 ```
 
-### 2. README Badge
+### 2. Repository Permissions
+
+Ensure your workflow has write permissions to create the shields branch:
+
+```yaml
+permissions:
+  contents: write
+```
+
+### 3. README Badge
 
 Add the badge to your README.md:
 
@@ -140,9 +145,11 @@ Add the badge to your README.md:
 ![Coverage](https://byob.yarr.is/YOUR_USERNAME/YOUR_REPO_NAME/coverage)
 ```
 
-### 3. No Additional Setup Required
+Replace `coverage` with your `badge-name` if you used a custom name.
 
-The coverage badge now uses BYOB (Bring Your Own Badge) which stores badge data in the repository itself using the built-in `GITHUB_TOKEN`. No personal access tokens, gists, or external services are required!
+### 4. No Additional Setup Required
+
+The coverage badge uses BYOB (Bring Your Own Badge) which stores badge data in the repository itself using the built-in `GITHUB_TOKEN`. No personal access tokens, gists, or external services are required!
 
 ## Example Workflow
 
@@ -153,6 +160,9 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+
+permissions:
+  contents: write
 
 jobs:
   test:
@@ -172,42 +182,11 @@ jobs:
     - name: Run tests
       run: pytest --cov=src --cov-report=json
     
-    - name: Extract coverage percentage for badge
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      id: coverage-extract
-      run: |
-        python -c "
-        import json
-        with open('coverage.json') as f:
-            data = json.load(f)
-        coverage = float(data['totals']['percent_covered_display'])
-        print(f'coverage={coverage}')
-        
-        # Determine color
-        if coverage >= 90:
-            color = 'brightgreen'
-        elif coverage >= 80:
-            color = 'green'  
-        elif coverage >= 70:
-            color = 'yellowgreen'
-        elif coverage >= 60:
-            color = 'yellow'
-        elif coverage >= 50:
-            color = 'orange'
-        else:
-            color = 'red'
-        print(f'color={color}')
-        " >> $GITHUB_OUTPUT
-    
     - name: Update Coverage Badge
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      uses: RubbaBoy/BYOB@v1.3.0
+      uses: emiperez95/github-actions/coverage-badge@v2
       with:
-        NAME: coverage
-        LABEL: 'Coverage'
-        STATUS: '${{ steps.coverage-extract.outputs.coverage }}%'
-        COLOR: ${{ steps.coverage-extract.outputs.color }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        coverage-file: 'coverage.json'
 ```
 
 ## Error Handling
