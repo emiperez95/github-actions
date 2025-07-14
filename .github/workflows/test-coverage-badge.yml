@@ -41,14 +41,43 @@ jobs:
           cd coverage-badge
           python -m pytest tests/ --cov=. --cov-report=json
       
+      - name: Extract coverage percentage for badge
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        id: coverage-extract
+        run: |
+          cd coverage-badge
+          python -c "
+          import json
+          with open('coverage.json') as f:
+              data = json.load(f)
+          coverage = float(data['totals']['percent_covered_display'])
+          print(f'coverage={coverage}')
+          
+          # Determine color
+          if coverage >= 90:
+              color = 'brightgreen'
+          elif coverage >= 80:
+              color = 'green'  
+          elif coverage >= 70:
+              color = 'yellowgreen'
+          elif coverage >= 60:
+              color = 'yellow'
+          elif coverage >= 50:
+              color = 'orange'
+          else:
+              color = 'red'
+          print(f'color={color}')
+          " >> $GITHUB_OUTPUT
+      
       - name: Update Coverage Badge
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        uses: ./coverage-badge
+        uses: RubbaBoy/BYOB@v1.3.0
         with:
-          gist-id: '4c0afb4ee35647c3fa0e11092ce4cbca'
-          gist-token: ${{ secrets.GIST_SECRET }}
-          coverage-file: coverage-badge/coverage.json
-          gist-filename: 'github-actions-coverage-badge.json'
+          NAME: coverage
+          LABEL: 'Coverage'
+          STATUS: '${{ steps.coverage-extract.outputs.coverage }}%'
+          COLOR: ${{ steps.coverage-extract.outputs.color }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   
   integration-tests:
     name: Integration Tests

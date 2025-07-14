@@ -1,9 +1,9 @@
 # Coverage Badge Gist Action
 
-![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/emiperez95/4c0afb4ee35647c3fa0e11092ce4cbca/raw/github-actions-coverage-badge.json)
+![Coverage](https://byob.yarr.is/emiperez95/github-actions/coverage)
 ![Tests](https://github.com/emiperez95/github-actions/workflows/Test%20Coverage%20Badge%20Action/badge.svg)
 
-A GitHub Action that automatically updates a coverage badge using GitHub Gist and shields.io. This action extracts coverage data from a JSON file, determines the appropriate badge color based on coverage percentage, and updates a GitHub Gist that can be used with shields.io to display a dynamic coverage badge.
+A GitHub Action that automatically updates a coverage badge using repository storage and BYOB. This action extracts coverage data from a JSON file, determines the appropriate badge color based on coverage percentage, and updates a repository-hosted badge that displays dynamic coverage information.
 
 ## Testing
 
@@ -132,34 +132,17 @@ The JSON file should have the structure:
 }
 ```
 
-### 2. GitHub Gist
-
-1. Create a new gist at https://gist.github.com
-2. Use any filename (e.g., `coverage.json`)
-3. Add initial content:
-   ```json
-   {
-     "schemaVersion": 1,
-     "label": "coverage",
-     "message": "0%",
-     "color": "red"
-   }
-   ```
-4. Copy the Gist ID from the URL
-
-### 3. GitHub Personal Access Token
-
-1. Go to https://github.com/settings/tokens
-2. Create a new token with `gist` scope
-3. Add it as a repository secret named `GIST_SECRET`
-
-### 4. README Badge
+### 2. README Badge
 
 Add the badge to your README.md:
 
 ```markdown
-![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/USERNAME/GIST_ID/raw/FILENAME.json)
+![Coverage](https://byob.yarr.is/YOUR_USERNAME/YOUR_REPO_NAME/coverage)
 ```
+
+### 3. No Additional Setup Required
+
+The coverage badge now uses BYOB (Bring Your Own Badge) which stores badge data in the repository itself using the built-in `GITHUB_TOKEN`. No personal access tokens, gists, or external services are required!
 
 ## Example Workflow
 
@@ -189,12 +172,42 @@ jobs:
     - name: Run tests
       run: pytest --cov=src --cov-report=json
     
+    - name: Extract coverage percentage for badge
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      id: coverage-extract
+      run: |
+        python -c "
+        import json
+        with open('coverage.json') as f:
+            data = json.load(f)
+        coverage = float(data['totals']['percent_covered_display'])
+        print(f'coverage={coverage}')
+        
+        # Determine color
+        if coverage >= 90:
+            color = 'brightgreen'
+        elif coverage >= 80:
+            color = 'green'  
+        elif coverage >= 70:
+            color = 'yellowgreen'
+        elif coverage >= 60:
+            color = 'yellow'
+        elif coverage >= 50:
+            color = 'orange'
+        else:
+            color = 'red'
+        print(f'color={color}')
+        " >> $GITHUB_OUTPUT
+    
     - name: Update Coverage Badge
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      uses: ./.github/actions/coverage-badge
+      uses: RubbaBoy/BYOB@v1.3.0
       with:
-        gist-id: 'your-gist-id-here'
-        gist-token: ${{ secrets.GIST_SECRET }}
+        NAME: coverage
+        LABEL: 'Coverage'
+        STATUS: '${{ steps.coverage-extract.outputs.coverage }}%'
+        COLOR: ${{ steps.coverage-extract.outputs.color }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 ## Error Handling
@@ -208,10 +221,10 @@ The action includes comprehensive error handling:
 
 ## Troubleshooting
 
-### Badge shows "invalid"
-- Check that the Gist ID is correct
-- Verify the GIST_SECRET has proper permissions
-- Ensure the workflow has run at least once
+### Badge shows "invalid" or doesn't appear
+- Ensure the workflow has run at least once on the main branch
+- Check that the BYOB action completed successfully in Actions tab
+- Verify the badge URL uses correct username/repository name
 
 ### Coverage not updating
 - Verify the coverage file path is correct
@@ -219,8 +232,7 @@ The action includes comprehensive error handling:
 - Review the action logs for error messages
 
 ### Permission denied errors
-- Ensure GIST_SECRET has `gist` scope
-- Check that the token hasn't expired
+- No longer applicable! BYOB uses the built-in GITHUB_TOKEN
 
 ## Migration from Inline Scripts
 
