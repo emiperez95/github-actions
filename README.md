@@ -1,5 +1,8 @@
 # GitHub Actions Collection
 
+![Coverage](https://byob.yarr.is/emiperez95/github-actions/coverage)
+![Tests](https://github.com/emiperez95/github-actions/workflows/Test%20Coverage%20Badge%20Action/badge.svg)
+
 A collection of reusable GitHub Actions for common development workflows.
 
 ## Available Actions
