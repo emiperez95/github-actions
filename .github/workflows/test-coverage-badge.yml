@@ -13,6 +13,9 @@ on:
       - '.github/workflows/test-coverage-badge.yml'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   unit-tests:
     name: Run Unit Tests
