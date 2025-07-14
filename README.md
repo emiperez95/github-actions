@@ -9,24 +9,23 @@ A collection of reusable GitHub Actions for common development workflows.
 
 ### 🛡️ Coverage Badge
 
-Generate and update coverage badges using GitHub Gist and shields.io.
+Generate and update coverage badges using BYOB (Bring Your Own Badge).
 
 **Location**: [`coverage-badge/`](./coverage-badge/)
 
 **Usage**:
 ```yaml
 - name: Update Coverage Badge
-  uses: emiperez95/github-actions/coverage-badge@v1
+  uses: emiperez95/github-actions/coverage-badge@v2
   with:
-    gist-id: 'your-gist-id'
-    gist-token: ${{ secrets.GIST_SECRET }}
+    coverage-file: 'coverage.json'
 ```
 
 **Features**:
 - ✅ Extracts coverage from JSON reports
 - 🎨 Automatic color coding based on percentage
-- 📊 Updates GitHub Gist for shields.io integration
-- 🚀 Fully configurable inputs
+- 📊 Uses BYOB for repository-hosted badges
+- 🚀 No secrets required - uses built-in GITHUB_TOKEN
 - 🛡️ Comprehensive error handling
 
 [📖 Full Documentation](./coverage-badge/README.md)
@@ -46,7 +45,7 @@ uses: ./.github/actions/coverage-badge
 
 ### Production Use
 ```yaml
-uses: emiperez95/github-actions/coverage-badge@v1
+uses: emiperez95/github-actions/coverage-badge@v2
 ```
 
 ## Contributing
