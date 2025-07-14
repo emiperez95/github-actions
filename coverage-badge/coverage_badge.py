@@ -76,12 +76,10 @@ def write_github_outputs(outputs: Dict[str, Any]) -> None:
 def main():
     """Main function for command line usage."""
     if len(sys.argv) < 2:
-        print("Usage: coverage_badge.py <coverage_file> [gist_id] [gist_filename]")
+        print("Usage: coverage_badge.py <coverage_file>")
         sys.exit(1)
     
     coverage_file = sys.argv[1]
-    gist_id = sys.argv[2] if len(sys.argv) > 2 else None
-    gist_filename = sys.argv[3] if len(sys.argv) > 3 else "coverage.json"
     
     try:
         coverage, color = extract_coverage(coverage_file)
@@ -95,10 +93,6 @@ def main():
             "color": color
         }
         
-        if gist_id:
-            repo_owner = os.environ.get('GITHUB_REPOSITORY_OWNER', 'owner')
-            badge_url = f"https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/{repo_owner}/{gist_id}/raw/{gist_filename}"
-            outputs["badge-url"] = badge_url
         
         # Write outputs for GitHub Actions
         write_github_outputs(outputs)

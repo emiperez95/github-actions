@@ -13,12 +13,22 @@ Generate and update coverage badges using BYOB (Bring Your Own Badge).
 
 **Location**: [`coverage-badge/`](./coverage-badge/)
 
-**Usage**:
+**Quick Start**:
 ```yaml
-- name: Update Coverage Badge
-  uses: emiperez95/github-actions/coverage-badge@v2
-  with:
-    coverage-file: 'coverage.json'
+# In your workflow file:
+permissions:
+  contents: write  # Required for BYOB
+
+steps:
+  - name: Update Coverage Badge
+    uses: emiperez95/github-actions/coverage-badge@v2
+    with:
+      coverage-file: 'coverage.json'
+```
+
+**In your README.md**:
+```markdown
+![Coverage](https://byob.yarr.is/YOUR_USERNAME/YOUR_REPO/coverage)
 ```
 
 **Features**:

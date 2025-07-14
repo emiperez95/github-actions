@@ -1,4 +1,4 @@
-# Coverage Badge Gist Action
+# Coverage Badge Action
 
 ![Coverage](https://byob.yarr.is/emiperez95/github-actions/coverage)
 ![Tests](https://github.com/emiperez95/github-actions/workflows/Test%20Coverage%20Badge%20Action/badge.svg)
@@ -52,8 +52,8 @@ coverage-badge/
 
 - ✅ Extracts coverage percentage from JSON coverage reports
 - 🎨 Automatically determines badge color based on coverage thresholds
-- 📊 Updates GitHub Gist with badge data
-- 🔗 Generates shields.io compatible badge URL
+- 📊 Updates repository-hosted badge using BYOB
+- 🔗 Generates BYOB-compatible badge URL
 - 🚀 Configurable inputs for different project setups
 - 🛡️ Comprehensive error handling
 
@@ -130,12 +130,14 @@ The JSON file should have the structure:
 
 ### 2. Repository Permissions
 
-Ensure your workflow has write permissions to create the shields branch:
+**⚠️ CRITICAL**: Your workflow MUST have write permissions for BYOB to work:
 
 ```yaml
 permissions:
   contents: write
 ```
+
+Without this permission, the action will fail with a "Permission denied" error.
 
 ### 3. README Badge
 
@@ -195,7 +197,7 @@ The action includes comprehensive error handling:
 
 - **Missing coverage file**: Clear error message with file path
 - **Invalid JSON structure**: Helpful error about expected format
-- **Gist update failures**: Detailed error messages from GitHub API
+- **Badge update failures**: Detailed error messages from BYOB action
 - **Missing inputs**: Validation of required parameters
 
 ## Troubleshooting
@@ -232,4 +234,4 @@ This action is designed to be easily extractable to a shared repository for reus
 
 ## License
 
-This action is part of the video-processing-pipeline project and follows the same license terms.
+This action is part of the github-actions repository and follows the same license terms.
