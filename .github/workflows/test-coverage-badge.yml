@@ -40,6 +40,14 @@ jobs:
         run: |
           cd coverage-badge
           python -m pytest tests/ --cov=. --cov-report=json
+      
+      - name: Update Coverage Badge
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: ./coverage-badge
+        with:
+          gist-id: 'YOUR_GIST_ID'
+          gist-token: ${{ secrets.GIST_SECRET }}
+          coverage-file: coverage-badge/coverage.json
   
   integration-tests:
     name: Integration Tests
