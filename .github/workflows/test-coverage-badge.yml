@@ -45,9 +45,10 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: ./coverage-badge
         with:
-          gist-id: 'YOUR_GIST_ID'
+          gist-id: '4c0afb4ee35647c3fa0e11092ce4cbca'
           gist-token: ${{ secrets.GIST_SECRET }}
           coverage-file: coverage-badge/coverage.json
+          gist-filename: 'github-actions-coverage-badge.json'
   
   integration-tests:
     name: Integration Tests

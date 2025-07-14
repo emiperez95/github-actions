@@ -1,6 +1,6 @@
 # Coverage Badge Gist Action
 
-![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/emiperez95/YOUR_GIST_ID/raw/coverage.json)
+![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/emiperez95/4c0afb4ee35647c3fa0e11092ce4cbca/raw/github-actions-coverage-badge.json)
 ![Tests](https://github.com/emiperez95/github-actions/workflows/Test%20Coverage%20Badge%20Action/badge.svg)
 
 A GitHub Action that automatically updates a coverage badge using GitHub Gist and shields.io. This action extracts coverage data from a JSON file, determines the appropriate badge color based on coverage percentage, and updates a GitHub Gist that can be used with shields.io to display a dynamic coverage badge.
