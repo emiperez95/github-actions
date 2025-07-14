@@ -11,6 +11,8 @@ A collection of reusable GitHub Actions for common development workflows.
 
 Generate and update coverage badges using BYOB (Bring Your Own Badge).
 
+**⚠️ Note**: Only works with **public repositories**. For private repos, use v1 with GitHub Gists.
+
 **Location**: [`coverage-badge/`](./coverage-badge/)
 
 **Quick Start**:

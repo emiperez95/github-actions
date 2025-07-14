@@ -1,5 +1,5 @@
 name: 'Coverage Badge'
-description: 'Updates a coverage badge using BYOB (Bring Your Own Badge)'
+description: 'Updates a coverage badge using BYOB (Bring Your Own Badge) - only works with public repositories'
 author: 'emiperez95'
 
 inputs:

@@ -7,6 +7,8 @@ A GitHub Action that automatically updates a coverage badge using BYOB (Bring Yo
 
 **✨ No secrets required!** This action uses the built-in `GITHUB_TOKEN` and stores badge data directly in your repository.
 
+**⚠️ IMPORTANT**: BYOB only works with **public repositories**. For private repositories, the badge will not be accessible since BYOB needs to read the badge data from your repository's `shields` branch.
+
 ## Testing
 
 This action includes comprehensive tests to ensure reliability:
@@ -109,6 +111,27 @@ The action automatically determines badge colors based on coverage percentage:
 | < 50% | Red | ![45%](https://img.shields.io/badge/coverage-45%25-red) |
 
 ## Setup Requirements
+
+### 0. Public Repository Requirement
+
+**⚠️ This action only works with public repositories!** BYOB requires public access to read badge data from your repository's `shields` branch. 
+
+**For private repositories**, you have these options:
+
+1. **Use v1 with GitHub Gists** (Recommended):
+   ```yaml
+   - uses: emiperez95/github-actions/coverage-badge@v1
+     with:
+       gist-id: 'your-gist-id'
+       gist-token: ${{ secrets.GIST_SECRET }}
+   ```
+   This works because the gist is public while your repo remains private.
+
+2. **Create your own badge solution**: Host badge data on your own server or CDN
+
+3. **Use a third-party service**: Services like Codecov or Coveralls support private repos
+
+**For public repositories**: Continue with the BYOB setup below
 
 ### 1. Coverage JSON File
 
